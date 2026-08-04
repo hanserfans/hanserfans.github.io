@@ -1,102 +1,35 @@
 ---
 layout: page
 title: "About"
-description: "Hey, this is BY."
+description: "你好，我是 kano。"
 header-img: "img/post-bg-rwd.jpg"
 ---
 
-<!-- Language Selector -->
-<!-- <select class="sel-lang" onchange= "onLanChange(this.options[this.options.selectedIndex].value)">
-    <option value="0" selected> 中文 Chinese </option>
-    <option value="1"> 英文 English </option>
-</select> -->
-
-<!-- Chinese Version -->
 <div class="zh post-container">
+    <blockquote>
+        <p>黎明的那道光会穿过黑暗<br>
+        积土成山，非斯须之作</p>
+    </blockquote>
 
-    <!--copied from markdown -->
-    <blockquote><p>冰冻三尺 非一日之寒<br>
-    积土成山 非斯须之作</p></blockquote>
+    <p>你好，我是 <strong>kano</strong>。2024 年毕业于东北林业大学，毕业后做过前后端开发，目前参与指纹浏览器相关项目的开发工作。</p>
 
-    <p>Hey，我是<strong>柏荧(BY)</strong>，一只iOS程序猿，现在厦门工作。</p>
+    <p>我也走过一段比较迷茫的阶段。尝试过考研，后来慢慢确认那并不是最适合自己的路径。现在的我把重心放在更清晰的目标上：一边工作积累经验，一边准备 2027 年 4 月入学的日本院校修士考试，持续推进托福、日语和专业课备考。</p>
 
-    <p>工作、学习之余，我还是一个健身爱好者，同时也非常喜欢拳击。</p>
+    <p>这两年对我来说，是从校园走向社会后最真实、也最需要耐心的一段时间。工作的方向、未来的选择、现实的压力，都让我不断重新认识自己。但我也越来越相信，很多事情不会一下子变好，重要的是保持行动，慢慢把路走出来。</p>
 
-    <p>这是我的利用 <a href="https://pages.github.com/">GitHub Pages</a> 与 <a href="http://jekyll.com.cn/">Jekyll</a> 搭建的个人博客。我在 GitHub 主页 <a href="https://github.com/hanserfans">👉GitHub·hanserfans</a>。如果有什么问题，欢迎提出探讨~</p>
+    <p>平时喜欢动漫、写作，也会在这里记录技术、生活和成长中的一些思考。希望两年后的自己，能够比现在更稳定一点，少一些焦虑，多一些笃定；有一份踏实的工作，也有更明确的人生方向。</p>
 
-    <p></p>
-    
-    <h5>Talks</h5>
+    <p>这个博客基于 <a href="https://pages.github.com/">GitHub Pages</a> 和 <a href="https://jekyllrb.com/">Jekyll</a> 搭建，用来记录学习、开发和生活里的阶段性想法。我的 GitHub：<a href="https://github.com/hanserfans">hanserfans</a>。</p>
+
+    <h5>Links</h5>
 
     <ul>
-        <li><a href="https://github.com">GitHub</a></li>
-        <li><a href="http://jekyll.com.cn/">jekyll</a></li>
-        <li><a href="http://huangxuan.me/">Hux</a></li> 
-        <li><a href="https://analytics.google.com/analytics">Google Analytics</a></li>
+        <li><a href="https://github.com/hanserfans">GitHub</a></li>
+        <li><a href="https://hanserfans.github.io">Blog</a></li>
+        <li><a href="https://pages.github.com/">GitHub Pages</a></li>
+        <li><a href="https://jekyllrb.com/">Jekyll</a></li>
     </ul>
 </div>
-
-<!-- English Version -->
-<!-- <div class="en post-container">
-    <blockquote><p>Yet another iOS Developer. <br>
-    Yet another Life-long Student.</p></blockquote>
-
-    <p>Hi, I am <strong>Baiying Qiu</strong>，you can call me <strong>BY</strong>. I am an iOS software engineer and currently working in Xiamen</p>
-
-    <p>This is my personal blog, built with GitHub Pages and Jekyll. My GitHub is 👉 <a href="https://github.com/hanserfans">Github·hanserfans</a>.</p>
-    
-    <p>I am a sports enthusiast, I like fitness, running and boxing.</p>
-
-    <h5>Talks</h5>
-
-    <ul>
-    <li><a href="https://github.com">GitHub</a></li>
-    <li><a href="http://jekyll.com.cn/">jekyll</a></li>
-    <li><a href="https://pages.github.com/">GitHub Pages</a></li>
-    <li><a href="https://hanserfans.github.io">hanserfans</a></li>
-    </ul>
-</div> -->
-
-<!-- Handle Language Change -->
-<script type="text/javascript">
-    // get nodes
-    var $zh = document.querySelector(".zh");
-    var $en = document.querySelector(".en");
-    var $select = document.querySelector("select");
-
-    // bind hashchange event
-    window.addEventListener('hashchange', _render);
-
-    // handle render
-    function _render(){
-        var _hash = window.location.hash;
-        // en
-        if(_hash == "#en"){
-            $select.selectedIndex = 1;
-            $en.style.display = "block";
-            $zh.style.display = "none";
-        // zh by default
-        }else{
-            // not trigger onChange, otherwise cause a loop call.
-            $select.selectedIndex = 0;
-            $zh.style.display = "block";
-            $en.style.display = "none";
-        }
-    }
-
-    // handle select change
-    function onLanChange(index){
-        if(index == 0){
-            window.location.hash = "#zh"
-        }else{
-            window.location.hash = "#en"
-        }
-    }
-
-    // init
-    _render();
-</script>
-
 
 <!-- Gitalk 评论 start  -->
 {% if site.gitalk.enable %}
