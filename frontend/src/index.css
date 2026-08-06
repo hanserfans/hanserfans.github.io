@@ -1,0 +1,279 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-purple-50 min-h-screen;
+    background-attachment: fixed;
+  }
+
+  /* 滚动条美化 */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-slate-100;
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 rounded-lg;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-slate-400;
+  }
+}
+
+@layer components {
+  /* 玻璃态卡片 */
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-md border border-white/20 shadow-card rounded-2xl;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
+  /* 渐变卡片 */
+  .gradient-card {
+    @apply bg-gradient-to-br from-primary-50 via-white to-accent-50 border border-primary-100 rounded-2xl shadow-soft;
+  }
+
+  /* 按钮样式 */
+  .btn {
+    @apply px-6 py-3 rounded-xl font-medium transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 transform hover:scale-105 active:scale-95;
+  }
+
+  .btn-primary {
+    @apply bg-gradient-to-r from-primary-600 to-primary-500 text-white shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:from-primary-700 hover:to-primary-600 focus:ring-primary-500;
+  }
+
+  .btn-secondary {
+    @apply bg-white text-slate-700 border border-slate-200 shadow-soft hover:bg-slate-50 hover:border-slate-300 focus:ring-slate-500;
+  }
+
+  .btn-accent {
+    @apply bg-gradient-to-r from-accent-600 to-accent-500 text-white shadow-lg shadow-accent-500/30 hover:shadow-accent-500/50 hover:from-accent-700 hover:to-accent-600 focus:ring-accent-500;
+  }
+
+  /* 输入框样式 */
+  .input {
+    @apply w-full px-5 py-3 bg-white/70 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all duration-300 shadow-soft hover:shadow-md;
+  }
+
+  .input:focus {
+    @apply bg-white shadow-glow;
+  }
+
+  /* 状态指示器 */
+  .status-dot {
+    @apply w-3 h-3 rounded-full animate-pulse;
+  }
+
+  .status-online {
+    @apply bg-accent-500 shadow-glow shadow-accent-500/50;
+  }
+
+  .status-offline {
+    @apply bg-danger-500;
+  }
+
+  /* 导航链接 */
+  .nav-link {
+    @apply px-4 py-2 rounded-lg text-slate-600 hover:text-primary-600 hover:bg-primary-50 transition-all duration-300 font-medium;
+  }
+
+  .nav-link.active {
+    @apply bg-primary-100 text-primary-700 font-semibold shadow-inner-glow;
+  }
+
+  /* 进度条 */
+  .progress-bar {
+    @apply h-2 bg-slate-200 rounded-full overflow-hidden;
+  }
+
+  .progress-fill {
+    @apply h-full bg-gradient-to-r from-primary-500 to-accent-500 rounded-full transition-all duration-500 ease-out;
+  }
+
+  /* 标签样式 */
+  .tag {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-gradient-to-r from-primary-100 to-primary-50 text-primary-700 border border-primary-200;
+  }
+
+  .tag-accent {
+    @apply from-accent-100 to-accent-50 text-accent-700 border-accent-200;
+  }
+
+  .tag-warning {
+    @apply from-warning-100 to-warning-50 text-warning-700 border-warning-200;
+  }
+
+  /* 卡片悬停效果 */
+  .hover-card {
+    @apply transition-all duration-300 hover:shadow-card hover:-translate-y-1;
+  }
+
+  /* 加载动画 */
+  .loading-skeleton {
+    @apply bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 bg-[length:200%_100%] animate-shimmer rounded;
+  }
+
+  /* 通知样式 */
+  .notification {
+    @apply px-6 py-4 rounded-xl border shadow-lg transform transition-all duration-300;
+  }
+
+  .notification-success {
+    @apply bg-accent-50 border-accent-200 text-accent-800;
+  }
+
+  .notification-error {
+    @apply bg-danger-50 border-danger-200 text-danger-800;
+  }
+
+  .notification-warning {
+    @apply bg-warning-50 border-warning-200 text-warning-800;
+  }
+
+  .notification-info {
+    @apply bg-primary-50 border-primary-200 text-primary-800;
+  }
+}
+
+@layer utilities {
+  /* 渐变文字 */
+  .text-gradient {
+    @apply bg-gradient-to-r from-primary-600 via-accent-600 to-primary-600 bg-clip-text text-transparent;
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: gradientMove 3s linear infinite;
+  }
+
+  @keyframes gradientMove {
+    0% {
+      background-position: 0% center;
+    }
+    100% {
+      background-position: 200% center;
+    }
+  }
+
+  /* 玻璃态效果 */
+  .glass {
+    @apply bg-white/30 backdrop-blur-lg border border-white/50;
+  }
+
+  /* 光晕效果 */
+  .glow-effect {
+    @apply shadow-glow;
+  }
+
+  /* 浮动效果 */
+  .float-animation {
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+/* 响应式优化 */
+@media (max-width: 768px) {
+  .btn {
+    @apply px-4 py-2 text-sm;
+  }
+
+  .glass-card {
+    @apply rounded-xl;
+  }
+}
+
+/* Markdown样式 */
+.markdown-body {
+  @apply text-slate-700;
+  line-height: 1.8;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  @apply font-bold text-slate-900 mt-6 mb-3;
+}
+
+.markdown-body h1 {
+  @apply text-3xl border-b-2 border-slate-200 pb-3;
+}
+
+.markdown-body h2 {
+  @apply text-2xl border-b border-slate-200 pb-2;
+}
+
+.markdown-body h3 {
+  @apply text-xl;
+}
+
+.markdown-body p {
+  @apply my-4;
+}
+
+.markdown-body ul,
+.markdown-body ol {
+  @apply my-4 pl-6;
+}
+
+.markdown-body ul {
+  @apply list-disc;
+}
+
+.markdown-body ol {
+  @apply list-decimal;
+}
+
+.markdown-body li {
+  @apply mb-2;
+}
+
+.markdown-body code {
+  @apply bg-slate-100 text-primary-700 px-2 py-1 rounded text-sm font-mono;
+}
+
+.markdown-body pre {
+  @apply bg-slate-900 text-slate-100 p-4 rounded-lg overflow-x-auto my-4;
+}
+
+.markdown-body pre code {
+  @apply bg-transparent text-slate-100 p-0;
+}
+
+.markdown-body blockquote {
+  @apply border-l-4 border-primary-500 pl-4 py-2 my-4 bg-primary-50 text-slate-700 italic;
+}
+
+.markdown-body a {
+  @apply text-primary-600 hover:text-primary-800 underline;
+}
+
+.markdown-body table {
+  @apply w-full border-collapse my-4;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+  @apply border border-slate-300 px-4 py-2 text-left;
+}
+
+.markdown-body table th {
+  @apply bg-slate-100 font-semibold;
+}
+
+.markdown-body img {
+  @apply rounded-lg shadow-md my-4 max-w-full;
+}
+
+.markdown-body hr {
+  @apply border-slate-300 my-6;
+}

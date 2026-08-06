@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO 连接测试</title>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .logs {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            height: 400px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+        .log-entry {
+            margin: 5px 0;
+            padding: 5px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .log-success {
+            color: #28a745;
+        }
+        .log-error {
+            color: #dc3545;
+        }
+        .log-info {
+            color: #17a2b8;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .info-panel {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border: 1px solid #b8daff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔌 Socket.IO 连接测试</h1>
+
+        <div id="connection-status" class="status disconnected">
+            🔴 未连接
+        </div>
+
+        <div class="info-panel">
+            <h3>连接信息</h3>
+            <div id="connection-info">
+                <p>等待连接...</p>
+            </div>
+        </div>
+
+        <div>
+            <button onclick="testSendEvent()">📤 发送测试事件</button>
+            <button onclick="testGenerationEvent()">🚀 模拟生成事件</button>
+            <button onclick="clearLogs()">🗑️ 清空日志</button>
+        </div>
+
+        <div class="logs" id="logs">
+            <div class="log-entry log-info">等待Socket.IO连接...</div>
+        </div>
+    </div>
+
+    <script>
+        let socket;
+        const logsContainer = document.getElementById('logs');
+        const statusElement = document.getElementById('connection-status');
+        const infoElement = document.getElementById('connection-info');
+
+        function addLog(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = `log-entry log-${type}`;
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logsContainer.appendChild(logEntry);
+            logsContainer.scrollTop = logsContainer.scrollHeight;
+        }
+
+        function clearLogs() {
+            logsContainer.innerHTML = '<div class="log-entry log-info">日志已清空</div>';
+        }
+
+        function updateConnectionInfo() {
+            if (socket && socket.connected) {
+                infoElement.innerHTML = `
+                    <p><strong>Socket ID:</strong> ${socket.id}</p>
+                    <p><strong>连接状态:</strong> ${socket.connected ? '已连接' : '未连接'}</p>
+                    <p><strong>命名空间:</strong> ${socket.nsp}</p>
+                    <p><strong>传输方式:</strong> ${socket.io?.engine?.transport?.name || 'Unknown'}</p>
+                `;
+            } else {
+                infoElement.innerHTML = '<p>等待连接...</p>';
+            }
+        }
+
+        // 创建Socket.IO连接
+        socket = io({
+            path: '/socket.io/',
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 5,
+            timeout: 10000
+        });
+
+        // 监听连接事件
+        socket.on('connect', () => {
+            addLog('✅ Socket.IO连接成功!', 'success');
+            statusElement.className = 'status connected';
+            statusElement.textContent = '🟢 已连接';
+            updateConnectionInfo();
+
+            // 发送连接确认
+            socket.emit('test_connection', { message: '前端测试连接', timestamp: new Date().toISOString() });
+        });
+
+        socket.on('disconnect', (reason) => {
+            addLog(`❌ Socket.IO断开连接: ${reason}`, 'error');
+            statusElement.className = 'status disconnected';
+            statusElement.textContent = '🔴 未连接';
+            updateConnectionInfo();
+        });
+
+        socket.on('connect_error', (error) => {
+            addLog(`🚨 连接错误: ${error}`, 'error');
+        });
+
+        // 监听服务器事件
+        socket.on('connected', (data) => {
+            addLog(`📥 收到connected事件: ${JSON.stringify(data)}`, 'success');
+        });
+
+        socket.on('test_response', (data) => {
+            addLog(`📥 收到test_response事件: ${JSON.stringify(data)}`, 'success');
+        });
+
+        socket.on('generation_started', (data) => {
+            addLog(`📥 收到generation_started事件: ${JSON.stringify(data)}`, 'success');
+        });
+
+        socket.on('generation_progress', (data) => {
+            addLog(`📥 收到generation_progress事件: ${JSON.stringify(data)}`, 'success');
+        });
+
+        socket.on('generation_complete', (data) => {
+            addLog(`📥 收到generation_complete事件: ${JSON.stringify(data)}`, 'success');
+        });
+
+        // 监听所有事件（用于调试）
+        socket.onAny((eventName, ...args) => {
+            addLog(`📥 [onAny] 收到事件: ${eventName}, 数据: ${JSON.stringify(args)}`, 'info');
+        });
+
+        // 测试发送事件
+        function testSendEvent() {
+            if (!socket.connected) {
+                addLog('⚠️ Socket未连接，无法发送事件', 'error');
+                return;
+            }
+
+            addLog('📤 发送test_event事件', 'info');
+            socket.emit('test_event', { message: '前端测试', timestamp: new Date().toISOString() });
+        }
+
+        // 模拟生成事件
+        function testGenerationEvent() {
+            if (!socket.connected) {
+                addLog('⚠️ Socket未连接，无法发送事件', 'error');
+                return;
+            }
+
+            addLog('📤 发送ping事件', 'info');
+            socket.emit('ping', { timestamp: new Date().toISOString() });
+        }
+
+        // 页面加载时的日志
+        addLog('🚀 Socket.IO测试页面加载完成', 'info');
+        addLog('🔗 正在尝试连接到服务器...', 'info');
+    </script>
+</body>
+</html>

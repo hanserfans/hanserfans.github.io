@@ -1,4 +1,3 @@
-
 # Created by https://www.gitignore.io/api/macos
 
 ### macOS ###
@@ -33,3 +32,40 @@ Temporary Items
 
 # debug file
 _site
+
+# 智能体系统文件
+.env
+.enhanced_agent_memory.json
+.writing_agent_memory.json
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# 敏感信息
+*api_key*
+*secret*
+*.key
+
+# Python虚拟环境
+venv/
+env/
+ENV/
+
+# 前端依赖和构建
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# 日志文件
+logs/
+*.log
+
+# 进程ID文件
+*.pid
+
+# 编辑器
+.vscode/
+.idea/
+*.swp
+*.swo
+*~

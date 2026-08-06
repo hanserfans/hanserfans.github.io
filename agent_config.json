@@ -1,0 +1,35 @@
+{
+  "agent_config": {
+    "name": "博客写作辅助智能体",
+    "version": "1.0.0",
+    "blog_path": "/Users/mac/git/hanserfans.github.io",
+    "posts_directory": "_posts",
+    "memory_file": ".writing_agent_memory.json"
+  },
+  "writing_style": {
+    "default_tags": ["技术", "学习", "实践"],
+    "header_images": [
+      "img/post-bg-hacker.jpg",
+      "img/post-bg-desk.jpg",
+      "img/post-bg-cook.jpg"
+    ],
+    "max_title_length": 50,
+    "min_content_length": 200
+  },
+  "agent_capabilities": {
+    "analysis": true,
+    "content_generation": false,
+    "auto_formatting": true,
+    "tag_suggestion": true,
+    "learning_tracking": true
+  },
+  "tools": [
+    "analyze_existing_posts",
+    "generate_post_structure",
+    "suggest_tags",
+    "format_content",
+    "create_post_file",
+    "update_learning_log",
+    "assist_writing"
+  ]
+}
