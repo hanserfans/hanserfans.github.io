@@ -40,6 +40,31 @@ generation_status = {
 }
 status_lock = threading.Lock()
 
+def basic_markdown_optimize(content):
+    """基础Markdown格式优化（AI优化失败时的fallback）"""
+    import re
+
+    # 规范化标题格式
+    content = re.sub(r'^#+\s*', lambda m: m.group(0).rstrip() + ' ', content, flags=re.MULTILINE)
+
+    # 规范化列表格式（统一使用 - ）
+    content = re.sub(r'^\*\s+', '- ', content, flags=re.MULTILINE)
+
+    # 规范化图片引用
+    content = re.sub(r'!\[([^\]]*)\]\(([^)]+)\)', lambda m: f'![{m.group(1).strip()}]({m.group(2).strip()})', content)
+
+    # 规范化链接格式
+    content = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', lambda m: f'[{m.group(1).strip()}]({m.group(2).strip()})', content)
+
+    # 确保代码块前后有空行
+    content = re.sub(r'(?<!\n\n)```', '\n\n```', content)
+    content = re.sub(r'```(?!\n\n)', '```\n\n', content)
+
+    # 移除多余空行
+    content = re.sub(r'\n{3,}', '\n\n', content)
+
+    return content.strip()
+
 def get_agent():
     """获取智能体实例（单例模式）"""
     global agent_instance
@@ -573,18 +598,19 @@ def upload_image():
         file_ext = file.filename.split('.')[-1].lower()
         unique_filename = f"{datetime.now().strftime('%Y%m%d-%H%M%S')}-{uuid.uuid4().hex[:8]}.{file_ext}"
 
-        # 确保上传目录存在
-        upload_dir = Path(__file__).parent / "frontend" / "public" / "uploads"
+        # 获取博客路径并保存到正确的目录
+        blog_path = get_config().get("blog_path")
+        upload_dir = Path(blog_path) / "img"
         upload_dir.mkdir(parents=True, exist_ok=True)
 
         # 保存文件
         file_path = upload_dir / unique_filename
         file.save(file_path)
 
-        # 生成Markdown格式的图片链接
-        image_url = f"/uploads/{unique_filename}"
+        # 生成Markdown格式的图片链接（博客系统的路径格式）
+        image_url = f"/img/{unique_filename}"
 
-        print(f"✅ 图片上传成功: {unique_filename}")
+        print(f"✅ 图片上传成功到博客目录: {unique_filename}")
 
         return jsonify({
             'success': True,
@@ -629,25 +655,39 @@ def optimize_markdown():
 
 **请直接返回优化后的Markdown内容，不要添加任何解释文字。**"""
 
-        # 调用智能体进行优化
-        from zhipuai import ZhipuAI
-        config = get_config()
-        client = ZhipuAI(api_key=config.get("zhipu"))
+        # 使用项目中已有的智能体进行优化
+        try:
+            from enhanced_agent import ZhipuAIProvider
+            config = get_config()
 
-        response = client.chat.completions.create(
-            model="glm-4-flash",
-            messages=[
-                {"role": "user", "content": optimization_prompt}
-            ],
-            temperature=0.3,  # 低温度确保稳定性
-            max_tokens=8000
-        )
+            ai_provider = ZhipuAIProvider(
+                api_key=config.get("zhipu"),
+                model="glm-4-flash"
+            )
 
-        optimized_content = response.choices[0].message.content.strip()
+            optimized_content = ai_provider.generate_content(optimization_prompt)
 
-        # 移除可能的代码块标记
-        if optimized_content.startswith('```markdown'):
-            optimized_content = optimized_content.replace('```markdown', '').replace('```', '').strip()
+            # 检查是否是错误消息
+            if optimized_content.startswith("生成内容时出错") or optimized_content.startswith("API调用失败"):
+                print(f"⚠️ AI优化失败，使用基础格式优化")
+                optimized_content = basic_markdown_optimize(content)
+            else:
+                # 移除可能的代码块标记
+                if optimized_content.startswith('```markdown'):
+                    optimized_content = optimized_content.replace('```markdown', '').replace('```', '').strip()
+                elif optimized_content.startswith('```'):
+                    # 移除首尾的代码块标记
+                    lines = optimized_content.split('\n')
+                    if lines[0].startswith('```'):
+                        lines = lines[1:]
+                    if lines[-1].startswith('```'):
+                        lines = lines[:-1]
+                    optimized_content = '\n'.join(lines).strip()
+
+        except Exception as e:
+            print(f"⚠️ 使用AI优化失败，使用基础格式优化: {str(e)}")
+            # 基础格式优化（fallback）
+            optimized_content = basic_markdown_optimize(content)
 
         print(f'✅ Markdown格式优化完成，优化后长度: {len(optimized_content)}')
 
@@ -665,15 +705,16 @@ def optimize_markdown():
         traceback.print_exc()
         return jsonify({'error': str(e)}), 500
 
-@app.route('/uploads/<filename>')
-def serve_uploaded_file(filename):
-    """提供上传的图片文件"""
+@app.route('/img/<filename>')
+def serve_blog_image(filename):
+    """提供博客图片文件"""
     try:
-        upload_dir = Path(__file__).parent / "frontend" / "public" / "uploads"
-        return send_from_directory(upload_dir, filename)
+        blog_path = get_config().get("blog_path")
+        img_dir = Path(blog_path) / "img"
+        return send_from_directory(img_dir, filename)
     except Exception as e:
-        print(f"❌ 服务文件失败: {str(e)}")
-        return jsonify({'error': '文件不存在'}), 404
+        print(f"❌ 服务图片文件失败: {str(e)}")
+        return jsonify({'error': '图片文件不存在'}), 404
 
 # ==================== 静态文件服务 ====================
 

@@ -53,18 +53,50 @@ class ZhipuAIProvider(AIProvider):
         }
 
         try:
-            response = requests.post(
-                f"{self.base_url}/chat/completions",
-                headers=headers,
-                json=data,
-                timeout=30
-            )
+            # 添加重试机制和增加超时时间
+            import time
+            max_retries = 3
+            retry_delay = 2  # 秒
 
-            if response.status_code == 200:
-                result = response.json()
-                return result["choices"][0]["message"]["content"]
-            else:
-                return f"API调用失败: {response.status_code} - {response.text}"
+            for attempt in range(max_retries):
+                try:
+                    response = requests.post(
+                        f"{self.base_url}/chat/completions",
+                        headers=headers,
+                        json=data,
+                        timeout=120  # 增加超时到120秒
+                    )
+
+                    if response.status_code == 200:
+                        result = response.json()
+                        return result["choices"][0]["message"]["content"]
+                    elif response.status_code == 429:  # 速率限制
+                        if attempt < max_retries - 1:
+                            print(f"⚠️ API速率限制，等待{retry_delay}秒后重试...")
+                            time.sleep(retry_delay)
+                            continue
+                        else:
+                            return f"API调用失败: 速率限制 (429)，请稍后再试"
+                    else:
+                        return f"API调用失败: {response.status_code} - {response.text}"
+
+                except requests.exceptions.Timeout as e:
+                    if attempt < max_retries - 1:
+                        print(f"⚠️ 请求超时，第{attempt + 1}次重试...")
+                        time.sleep(retry_delay)
+                        continue
+                    else:
+                        return f"生成内容时出错: 请求超时，请检查网络连接或稍后再试"
+
+                except requests.exceptions.ConnectionError as e:
+                    if attempt < max_retries - 1:
+                        print(f"⚠️ 网络连接错误，第{attempt + 1}次重试...")
+                        time.sleep(retry_delay)
+                        continue
+                    else:
+                        return f"生成内容时出错: 网络连接失败，请检查网络设置"
+
+            return f"生成内容时出错: 达到最大重试次数"
 
         except Exception as e:
             return f"生成内容时出错: {str(e)}"
@@ -94,17 +126,49 @@ class TavilySearchProvider:
         }
 
         try:
-            response = requests.post(
-                self.base_url,
-                headers=headers,
-                json=data,
-                timeout=30
-            )
+            # 添加重试机制和增加超时时间
+            import time
+            max_retries = 3
+            retry_delay = 1  # 秒
 
-            if response.status_code == 200:
-                return response.json()
-            else:
-                return {"error": f"搜索失败: {response.status_code}"}
+            for attempt in range(max_retries):
+                try:
+                    response = requests.post(
+                        self.base_url,
+                        headers=headers,
+                        json=data,
+                        timeout=60  # 增加超时到60秒
+                    )
+
+                    if response.status_code == 200:
+                        return response.json()
+                    elif response.status_code == 429:  # 速率限制
+                        if attempt < max_retries - 1:
+                            print(f"⚠️ 搜索API速率限制，等待{retry_delay}秒后重试...")
+                            time.sleep(retry_delay)
+                            continue
+                        else:
+                            return {"error": "搜索API速率限制，请稍后再试"}
+                    else:
+                        return {"error": f"搜索失败: {response.status_code}"}
+
+                except requests.exceptions.Timeout as e:
+                    if attempt < max_retries - 1:
+                        print(f"⚠️ 搜索请求超时，第{attempt + 1}次重试...")
+                        time.sleep(retry_delay)
+                        continue
+                    else:
+                        return {"error": "搜索请求超时，请检查网络连接"}
+
+                except requests.exceptions.ConnectionError as e:
+                    if attempt < max_retries - 1:
+                        print(f"⚠️ 搜索网络连接错误，第{attempt + 1}次重试...")
+                        time.sleep(retry_delay)
+                        continue
+                    else:
+                        return {"error": "搜索网络连接失败，请检查网络设置"}
+
+            return {"error": "搜索请求失败: 达到最大重试次数"}
 
         except Exception as e:
             return {"error": f"搜索时出错: {str(e)}"}

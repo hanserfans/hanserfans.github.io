@@ -437,8 +437,19 @@ export default function MarkdownEditor({ filename, onCancel, onSave, initialCont
                 components={{
                   // 自定义图片渲染
                   img: ({ src, alt, ...props }) => {
-                    // 处理相对路径
-                    const imgSrc = src?.startsWith('http') ? src : `/uploads/${src.split('/').pop()}`
+                    // 处理相对路径，适配博客系统的图片路径
+                    let imgSrc = src
+                    if (!src?.startsWith('http')) {
+                      // 如果是相对路径，确保使用 /img/ 路径
+                      if (src?.includes('/uploads/')) {
+                        imgSrc = src.replace('/uploads/', '/img/')
+                      } else if (src?.includes('/img/')) {
+                        imgSrc = src
+                      } else {
+                        // 纯文件名，添加 /img/ 前缀
+                        imgSrc = `/img/${src.split('/').pop()}`
+                      }
+                    }
                     return <img src={imgSrc} alt={alt || ''} className="rounded-lg shadow-md my-4" {...props} />
                   }
                 }}
