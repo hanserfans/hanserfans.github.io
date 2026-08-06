@@ -505,6 +505,25 @@ pre code {
   -o-background-size: cover;
   margin-bottom: 0px;
   /* 0 on mobile, modify by Hux */
+  min-height: 60vh; /* 增加最小高度确保背景图完全显示 */
+  position: relative;
+  overflow: hidden; /* 防止内容溢出 */
+}
+
+/* 确保背景图片在移动设备上也完全显示 */
+@media only screen and (max-width: 767px) {
+  .intro-header {
+    min-height: 50vh;
+    background-position: center center;
+  }
+}
+
+@media only screen and (min-width: 768px) {
+  .intro-header {
+    min-height: 60vh;
+    margin-bottom: 20px;
+    /* response on desktop */
+  }
 }
 @media only screen and (min-width: 768px) {
   .intro-header {
