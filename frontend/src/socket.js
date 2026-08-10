@@ -23,8 +23,7 @@ socket.on('connect', () => {
   console.log('🔍 Namespace:', socket.nsp)
   console.log('🔗 Socket对象:', socket)
   console.log('🔗 传输方式:', socket.io.engine?.transport?.name)
-  console.log('🔄 这是第', socket.io._reconnectionAttempts ? socket.io._reconnectionAttempts + 1 : 1, '次连接')
-
+  
   // 连接成功后，重新验证并确保事件监听器已注册
   setTimeout(() => {
     console.log('🔍 连接后验证事件监听器状态:')
@@ -32,48 +31,27 @@ socket.on('connect', () => {
     console.log('  - generation_progress:', socket.hasListeners('generation_progress'))
     console.log('  - generation_complete:', socket.hasListeners('generation_complete'))
     console.log('  - generation_error:', socket.hasListeners('generation_error'))
-
+    
     // 如果监听器未注册，重新注册
-    if (!socket.hasListeners('generation_started') ||
+    if (!socket.hasListeners('generation_started') || 
         !socket.hasListeners('generation_progress') ||
         !socket.hasListeners('generation_complete')) {
       console.log('⚠️ 检测到缺失的事件监听器，重新注册...')
       eventListenersRegistered = false
       registerGlobalEventListeners()
-    } else {
-      console.log('✅ 所有事件监听器已正确注册')
     }
   }, 100)
-
-  // 强制重新注册事件监听器（每次连接都重新注册）
-  console.log('🔄 强制重新注册事件监听器')
-  eventListenersRegistered = false
-  registerGlobalEventListeners()
+  
+  // 注册事件监听器
+  if (!eventListenersRegistered) {
+    registerGlobalEventListeners()
+  }
 })
 
 socket.on('disconnect', (reason) => {
   console.log('🔴 共享Socket断开连接:', reason)
   console.log('🔍 Socket ID:', socket.id)
   console.log('🆔 Namespace:', socket.nsp)
-  console.log('⚠️ 断开原因:', reason)
-
-  // 如果断开原因是客户端主动断开，不尝试重连
-  if (reason === 'io client disconnect') {
-    console.log('🛑 客户端主动断开，不尝试重连')
-  }
-})
-
-// 监听重连尝试
-socket.io.on('reconnect_attempt', (attempt) => {
-  console.log('🔄 尝试重新连接...', attempt, '次')
-})
-
-socket.io.on('reconnect', (attempt) => {
-  console.log('✅ 重新连接成功! 尝试次数:', attempt)
-})
-
-socket.io.on('reconnect_failed', () => {
-  console.log('❌ 重新连接失败')
 })
 
 socket.on('connect_error', (error) => {
@@ -245,12 +223,6 @@ function registerGlobalEventListeners() {
   // 添加connected事件确认
   socket.on('connected', (data) => {
     console.log('✅ ====== 收到connected事件 ======')
-    console.log('📦 数据:', data)
-  })
-
-  // 添加心跳事件监听
-  socket.on('heartbeat', (data) => {
-    console.log('💓 ====== 收到heartbeat事件 ======')
     console.log('📦 数据:', data)
   })
 
