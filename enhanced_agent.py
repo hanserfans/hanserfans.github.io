@@ -1,6 +1,6 @@
 """
 智能体API集成模块
-支持智谱AI、Tavily搜索等API调用
+支持MiniMax、Tavily搜索等API调用
 """
 
 import os
@@ -23,17 +23,18 @@ class AIProvider:
         raise NotImplementedError
 
 
-class ZhipuAIProvider(AIProvider):
-    """智谱AI服务提供商"""
+class MiniMaxProvider(AIProvider):
+    """MiniMax AI服务提供商（兼容OpenAI格式）"""
 
-    def __init__(self, api_key: str, model: str = "glm-4-flash"):
-        # 智谱AI的base URL
-        base_url = "https://open.bigmodel.cn/api/paas/v4"
+    def __init__(self, api_key: str, model: str = "MiniMax-M2.7", base_url: str = ""):
+        # 默认使用MiniMax API地址
+        if not base_url:
+            base_url = "https://minnimax.chat/v1"
         super().__init__(api_key, base_url, model)
 
     def generate_content(self, prompt: str, max_tokens: int = 2000,
                         temperature: float = 0.7) -> str:
-        """使用智谱AI生成内容"""
+        """使用MiniMax生成内容"""
 
         headers = {
             "Authorization": f"Bearer {self.api_key}",
@@ -181,16 +182,20 @@ class EnhancedWritingAgent:
         self.blog_path = blog_path
         self.api_keys = api_keys
 
-        # 初始化AI服务
-        self.zhipu_ai = None
+        # 初始化AI服务（统一使用MiniMax）
+        self.ai_client = None
         self.tavily_search = None
 
-        if "zhipu" in api_keys and api_keys["zhipu"]:
-            self.zhipu_ai = ZhipuAIProvider(
-                api_key=api_keys["zhipu"],
-                model=api_keys.get("zhipu_model", "glm-4-flash")
+        # MiniMax AI服务初始化
+        if api_keys.get("ai_api_key") and api_keys.get("ai_base_url"):
+            self.ai_client = MiniMaxProvider(
+                api_key=api_keys["ai_api_key"],
+                model=api_keys.get("ai_model", "MiniMax-M2.7"),
+                base_url=api_keys.get("ai_base_url")
             )
-            print("✅ 智谱AI服务已连接")
+            print(f"✅ MiniMax AI服务已连接")
+            print(f"   Base URL: {api_keys.get('ai_base_url')}")
+            print(f"   Model: {api_keys.get('ai_model', 'MiniMax-M2.7')}")
 
         if "tavily" in api_keys and api_keys["tavily"]:
             self.tavily_search = TavilySearchProvider(api_key=api_keys["tavily"])
@@ -230,8 +235,8 @@ class EnhancedWritingAgent:
     def generate_article_content(self, topic: str, style: str = "技术博客") -> str:
         """使用AI生成文章内容"""
 
-        if not self.zhipu_ai:
-            return "⚠️  未配置智谱AI，无法自动生成内容"
+        if not self.ai_client:
+            return "⚠️  未配置AI服务，无法自动生成内容"
 
         prompt = f"""
 请为一篇关于"{topic}"的{style}文章撰写内容。
@@ -246,8 +251,8 @@ class EnhancedWritingAgent:
 请直接输出文章内容，不要包含其他说明。
 """
 
-        print(f"🤖 正在使用AI生成关于'{topic}'的文章内容...")
-        content = self.zhipu_ai.generate_content(prompt)
+        print(f"🤖 正在使用MiniMax AI生成关于'{topic}'的文章内容...")
+        content = self.ai_client.generate_content(prompt)
 
         # 记录生成历史
         self.memory["created_posts"].append({
@@ -292,7 +297,7 @@ class EnhancedWritingAgent:
                 research_context += f"   {result.get('content', '')[:200]}...\n\n"
 
         # 2. 基于研究结果生成文章
-        if self.zhipu_ai:
+        if self.ai_client:
             prompt = f"""
 请为一篇关于"{topic}"的{style}文章撰写内容。
 
@@ -309,11 +314,11 @@ class EnhancedWritingAgent:
 """
 
             print(f"🤖 正在基于研究结果生成文章...")
-            content = self.zhipu_ai.generate_content(prompt)
+            content = self.ai_client.generate_content(prompt)
 
             return content
         else:
-            return "⚠️  未配置智谱AI，无法生成内容"
+            return "⚠️  未配置AI服务，无法生成内容"
 
     def create_ai_generated_post(self, title: str, topic: str,
                                  subtitle: str = "", tags: List[str] = None) -> str:
@@ -393,10 +398,11 @@ tags:
 def main():
     """演示增强版智能体功能"""
 
-    # API配置
+    # API配置（使用MiniMax）
     api_keys = {
-        "zhipu": "d983869bf26942029ee6c98b60bca13b.m8B4eO1tlK1uEbvk",
-        "zhipu_model": "glm-4-flash",
+        "ai_api_key": "gw-f43c25a3-d060-44ea-8f26-46d0a0033f3c",
+        "ai_base_url": "https://minnimax.chat/v1",
+        "ai_model": "MiniMax-M2.7",
         "tavily": "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"
     }
 

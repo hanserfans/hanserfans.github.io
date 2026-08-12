@@ -159,19 +159,15 @@ function registerGlobalEventListeners() {
         globalUpdateFunctions.setGenerationProgress(100)
         globalUpdateFunctions.setProgress(prev => [...prev, {
           type: 'success',
+          stage: 'complete',
           message: `文章已保存: ${data.title}`,
           timestamp: new Date().toLocaleTimeString()
         }])
         globalUpdateFunctions.setIsGenerating(false)
-        alert(`文章生成成功！文件: ${data.filepath}`)
+        // 不显示alert，因为HTTP轮询已经在handleGenerationComplete中处理
       } catch (error) {
         console.error('❌ 状态更新失败:', error)
-        // 即使状态更新失败，也显示成功提示
-        alert(`文章生成成功！文件: ${data.filepath}`)
       }
-    } else {
-      console.warn('⚠️ 全局状态函数不可用，但显示成功提示')
-      alert(`文章生成成功！文件: ${data.filepath}`)
     }
   }
 

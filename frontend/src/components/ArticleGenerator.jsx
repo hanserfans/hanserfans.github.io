@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Send, Sparkles, Loader2, CheckCircle, Search, Wand2, FileText, Lightbulb, Activity, Clock } from 'lucide-react'
 
 export default function ArticleGenerator() {
@@ -12,7 +12,9 @@ export default function ArticleGenerator() {
   const [progress, setProgress] = useState([])
   const [currentStatus, setCurrentStatus] = useState('')
   const [generationProgress, setGenerationProgress] = useState(0)
-  const [pollIntervalId, setPollIntervalId] = useState(null)
+  const pollIntervalIdRef = useRef(null)  // 使用ref存储interval id
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successFilePath, setSuccessFilePath] = useState('')
 
   // 添加HTTP轮询获取状态
   const pollGenerationStatus = async () => {
@@ -46,9 +48,11 @@ export default function ArticleGenerator() {
           message: `文章已保存: ${data.result.title}`,
           timestamp: new Date().toLocaleTimeString()
         }])
+        clearInterval(pollIntervalIdRef.current)
+        pollIntervalIdRef.current = null
         setIsGenerating(false)
-        clearInterval(pollIntervalId)
-        alert(`文章生成成功！文件: ${data.result.filepath}`)
+        setSuccessFilePath(data.result.filepath)
+        setShowSuccessModal(true)
       } else if (data.error) {
         // 生成错误
         setCurrentStatus('生成失败')
@@ -57,8 +61,9 @@ export default function ArticleGenerator() {
           message: `错误: ${data.error}`,
           timestamp: new Date().toLocaleTimeString()
         }])
+        clearInterval(pollIntervalIdRef.current)
+        pollIntervalIdRef.current = null
         setIsGenerating(false)
-        clearInterval(pollIntervalId)
       }
     } catch (error) {
       console.error('获取生成状态失败:', error)
@@ -91,7 +96,13 @@ export default function ArticleGenerator() {
     console.log('  - generation_error:', socket.hasListeners('generation_error'))
 
     return () => {
-      console.log('🧹 ArticleGenerator组件卸载，清理全局状态函数')
+      console.log('🧹 ArticleGenerator组件卸载，清理资源')
+      // 清理轮询定时器
+      if (pollIntervalId) {
+        console.log('⏹️  清理轮询定时器')
+        clearInterval(pollIntervalId)
+      }
+      // 清理全局状态函数
       globalUpdateFunctions.setCurrentStatus = null
       globalUpdateFunctions.setProgress = null
       globalUpdateFunctions.setGenerationProgress = null
@@ -383,6 +394,44 @@ export default function ArticleGenerator() {
           )}
         </div>
       </div>
+
+      {/* 成功提示模态框 */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 max-w-md mx-4 shadow-2xl">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-900 mb-2">文章生成成功！</h3>
+              <p className="text-slate-600 mb-6">
+                文件已保存到: <br />
+                <code className="text-sm bg-slate-100 px-2 py-1 rounded">{successFilePath}</code>
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowSuccessModal(false)}
+                  className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors"
+                >
+                  关闭
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSuccessModal(false)
+                    setFormData({ title: '', topic: '', subtitle: '', tags: '' })
+                    setProgress([])
+                    setGenerationProgress(0)
+                    setCurrentStatus('')
+                  }}
+                  className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  继续创建
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

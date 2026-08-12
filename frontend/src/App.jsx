@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react
 import { Brain, FileText, Search, Activity, Settings, Sparkles, Zap, Menu, X } from 'lucide-react'
 import Dashboard from './components/Dashboard'
 import ArticleGenerator from './components/ArticleGeneratorNew.jsx'
-import ArticleManagerSimple from './components/ArticleManagerSimple.jsx'
+import ArticleManager from './components/ArticleManager.jsx'
 import ArticleEditorFixed from './components/ArticleEditorFixed.jsx'
 import AgentMemory from './components/AgentMemory'
 import { socket } from './socket.js'
@@ -133,7 +133,7 @@ function AppContent({ systemStatus, setSystemStatus, isConnected, setIsConnected
         <Routes>
           <Route path="/" element={<Dashboard systemStatus={systemStatus} />} />
           <Route path="/generate" element={<ArticleGenerator />} />
-          <Route path="/posts" element={<ArticleManagerSimple />} />
+          <Route path="/posts" element={<ArticleManager />} />
           <Route path="/memory" element={<AgentMemory />} />
         </Routes>
       </main>
@@ -149,7 +149,7 @@ function AppContent({ systemStatus, setSystemStatus, isConnected, setIsConnected
                 关于我们
               </h3>
               <p className="text-sm text-slate-600">
-                基于AI的智能写作系统，结合智谱AI和Tavily搜索，为创作者提供强大支持。
+                基于AI的智能写作系统，结合MiniMax和Tavily搜索，为创作者提供强大支持。
               </p>
             </div>
 
@@ -185,13 +185,13 @@ function AppContent({ systemStatus, setSystemStatus, isConnected, setIsConnected
                 {systemStatus?.services && (
                   <>
                     <div className="flex items-center justify-between">
-                      <span className="text-slate-600">智谱AI服务</span>
+                      <span className="text-slate-600">MiniMax服务</span>
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                        systemStatus.services.zhipu_ai
+                        systemStatus.services.ai_service
                           ? 'bg-accent-100 text-accent-700'
                           : 'bg-danger-100 text-danger-700'
                       }`}>
-                        {systemStatus.services.zhipu_ai ? '正常' : '异常'}
+                        {systemStatus.services.ai_service ? '正常' : '异常'}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -215,7 +215,7 @@ function AppContent({ systemStatus, setSystemStatus, isConnected, setIsConnected
               © 2026 智能体写作助手 | AI 辅助创作系统
             </p>
             <p className="text-xs text-slate-500 mt-2">
-              Powered by 智谱AI & Tavily Search
+              Powered by MiniMax & Tavily Search
             </p>
           </div>
         </div>

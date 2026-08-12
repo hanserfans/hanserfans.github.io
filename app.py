@@ -70,13 +70,8 @@ def get_agent():
     global agent_instance
     if agent_instance is None:
         config = get_config()
-        api_keys = {
-            "zhipu": config.get("zhipu"),
-            "tavily": config.get("tavily"),
-            "zhipu_model": config.get("zhipu_model", "glm-4-flash")
-        }
-        blog_path = config.get("blog_path", "/Users/mac/git/hanserfans.github.io")
-        agent_instance = EnhancedWritingAgent(blog_path, api_keys)
+        api_keys = config.get_api_keys()
+        agent_instance = EnhancedWritingAgent(api_keys["blog_path"], api_keys)
     return agent_instance
 
 # ==================== RESTful API ====================
@@ -87,11 +82,15 @@ def get_status():
     try:
         config = get_config()
         agent = get_agent()
+        current_provider = config.get_current_provider()
 
         return jsonify({
             'status': 'healthy',
             'services': {
-                'zhipu_ai': agent.zhipu_ai is not None,
+                'ai_service': agent.ai_client is not None,
+                'ai_provider': current_provider.name if current_provider else '未配置',
+                'ai_model': current_provider.model if current_provider else '未配置',
+                'ai_base_url': current_provider.base_url if current_provider else '未配置',
                 'tavily_search': agent.tavily_search is not None,
                 'blog_path': config.get("blog_path")
             },
@@ -639,30 +638,43 @@ def optimize_markdown():
         print(f'📝 开始优化Markdown格式，内容长度: {len(content)}')
 
         # 构建优化提示词
-        optimization_prompt = f"""请优化以下Markdown文章的格式，但不改变原文内容和意思：
+        optimization_prompt = f"""请严格优化以下Markdown文章的**格式**，但**绝对不能改变或添加任何内容**。
 
-**要求：**
-1. 规范化标题层级（# ## ### 等）
-2. 统一列表格式（使用 - 或 *）
-3. 规范化图片引用语法
-4. 统一代码块标记
-5. 确保链接格式正确
-6. 优化空行和缩进
-7. 保持原有内容和语义不变
+**严格遵守的要求：**
+1. ⚠️ **禁止添加任何新内容** - 只能修改格式，不能改变语义
+2. ⚠️ **禁止删除任何内容** - 原文的每个字、每个标点都要保留
+3. **规范化标题层级**（# ## ### 等）
+4. **统一列表格式**（使用 - 或 *）
+5. **规范化图片引用语法**
+6. **统一代码块标记**
+7. **确保链接格式正确**
+8. **优化空行和缩进**
+9. **保留完整的YAML front matter**（如果有）
+10. **保留引用块**（> 开头的）
 
-**原文：**
+**关键原则：**
+- 如果原文有10段文字，优化后还是10段文字
+- 如果原文有2个标题，优化后还是2个标题
+- 只能改变文字的**格式**，不能改变文字的**内容**
+- 可以调整空行、缩进、列表符号等
+- 不能添加解释、评论、新的段落
+
+**原文（必须原封不动地保留，只改格式）：**
 {content}
 
-**请直接返回优化后的Markdown内容，不要添加任何解释文字。**"""
+**输出要求：**
+直接输出优化后的Markdown内容，不要添加任何说明文字。"""
 
         # 使用项目中已有的智能体进行优化
         try:
-            from enhanced_agent import ZhipuAIProvider
+            from enhanced_agent import MiniMaxProvider
             config = get_config()
+            api_keys = config.get_api_keys()
 
-            ai_provider = ZhipuAIProvider(
-                api_key=config.get("zhipu"),
-                model="glm-4-flash"
+            ai_provider = MiniMaxProvider(
+                api_key=api_keys["ai_api_key"],
+                model=api_keys["ai_model"],
+                base_url=api_keys["ai_base_url"]
             )
 
             optimized_content = ai_provider.generate_content(optimization_prompt)
@@ -683,6 +695,11 @@ def optimize_markdown():
                     if lines[-1].startswith('```'):
                         lines = lines[:-1]
                     optimized_content = '\n'.join(lines).strip()
+
+                # 检查是否添加了内容（长度增加超过10%说明可能添加了新内容）
+                if len(optimized_content) > len(content) * 1.1:
+                    print(f"⚠️ AI可能添加了新内容（优化后{len(optimized_content)}字符 vs 原文{len(content)}字符），使用基础格式优化")
+                    optimized_content = basic_markdown_optimize(content)
 
         except Exception as e:
             print(f"⚠️ 使用AI优化失败，使用基础格式优化: {str(e)}")
